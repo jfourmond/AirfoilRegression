@@ -11,9 +11,9 @@
     <packaging>jar</packaging>
 
     <properties>
-        <datavec.version>0.7.2</datavec.version>
-        <nd4j.version>0.7.2</nd4j.version>
-        <dl4j.version>0.7.2</dl4j.version>
+        <datavec.version>0.8.0</datavec.version>
+        <nd4j.version>0.8.0</nd4j.version>
+        <dl4j.version>0.8.0</dl4j.version>
         <jfreechart.version>1.0.19</jfreechart.version>
     </properties>
 
