@@ -20,4 +20,4 @@ The [AirfoilRecognition](https://github.com/jfourmond/AirfoilRegression/blob/mas
 - Seed
 - ...
 
-Once launch, you can observe the evolution of your neural network and this url : [http://localhost:9000](http://localhost:9000)
+Once launch, you can observe the evolution of your neural network at this url : [http://localhost:9000](http://localhost:9000)

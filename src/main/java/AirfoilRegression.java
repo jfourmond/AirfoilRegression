@@ -6,7 +6,7 @@ import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
 import org.deeplearning4j.eval.RegressionEvaluation;
 import org.deeplearning4j.nn.conf.MultiLayerConfiguration;
 import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
-import org.deeplearning4j.nn.conf.layers.DenseLayer;
+import org.deeplearning4j.nn.conf.layers.GravesLSTM;
 import org.deeplearning4j.nn.conf.layers.OutputLayer;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.nn.weights.WeightInit;
@@ -46,9 +46,11 @@ public class AirfoilRegression {
     private static final int numInputs = 5;
     private static final int numHidden = 5;
     private static final int numOutputs = 1;
-    private static final double learningRate = 0.1;
-    private static final int iterations = 10000;
+    private static final double learningRate = 0.0015;
+    private static final int iterations = 100;
     private static final long seed = 13;
+
+    private static final int numEpochs = 100;
 
     private static MultiLayerNetwork net;
 
@@ -67,7 +69,7 @@ public class AirfoilRegression {
         allData = iterator.next();
         allData.shuffle();
 
-        SplitTestAndTrain testAndTrain = allData.splitTestAndTrain(0.75);
+        SplitTestAndTrain testAndTrain = allData.splitTestAndTrain(0.95);
         trainingData = testAndTrain.getTrain();
         testData = testAndTrain.getTest();
     }
@@ -92,9 +94,9 @@ public class AirfoilRegression {
                 .learningRate(learningRate)
                 .regularization(true).l2(1e-4)
                 .list()
-                .layer(0, new DenseLayer.Builder().nIn(numInputs).nOut(numHidden)
+                .layer(0, new GravesLSTM.Builder().nIn(numInputs).nOut(numHidden)
                         .build())
-                .layer(1, new DenseLayer.Builder().nIn(numHidden).nOut(numHidden)
+                .layer(1, new GravesLSTM.Builder().nIn(numHidden).nOut(numHidden)
                         .build())
                 .layer(2, new OutputLayer.Builder(LossFunctions.LossFunction.MSE)
                         .activation(Activation.IDENTITY)
@@ -105,29 +107,27 @@ public class AirfoilRegression {
         Log.info("Building neural network...");
         net = new MultiLayerNetwork(conf);
         net.init();
-        net.setListeners(new ScoreIterationListener(1), new StatsListener(statsStorage));
+        net.setListeners(new ScoreIterationListener(100), new StatsListener(statsStorage));
     }
 
     private static void train() {
         Log.info("Training neural network...");
-        net.fit(trainingData);
+
+        for(int i=0 ; i<numEpochs ; i++) {
+            net.fit(trainingData);
+
+            RegressionEvaluation evaluation = new RegressionEvaluation(5);
+            INDArray output = net.output(testData.getFeatureMatrix());
+            evaluation.eval(testData.getLabels(), output);
+            System.out.println(evaluation.stats());
+        }
     }
 
     private static void evaluate() {
-        Log.info("Evaluate neural network...");
-
-        // TODO EVALUATION
-        RegressionEvaluation re = new RegressionEvaluation(5);
-        INDArray output = net.output(testData.getFeatureMatrix());
-        re.eval(testData.getLabels(), output);
-
-        Log.info(re.stats());
-
-//        Evaluation eval = new Evaluation(0);
-//        INDArray output = net.output(testData.getFeatureMatrix());
-//        eval.eval(testData.getLabels(), output);
-
-//        Log.info(eval.stats());
+        RegressionEvaluation evaluation = new RegressionEvaluation(5);
+        INDArray output = net.output(testData.getFeatureMatrix(), false);
+        evaluation.eval(testData.getLabels(), output);
+        System.out.print(evaluation.stats());
     }
 
     public static void main(String args[]) throws IOException, InterruptedException {
@@ -140,5 +140,7 @@ public class AirfoilRegression {
         buildNetwork();
         train();
         evaluate();
+
+        uiServer.stop();
     }
 }
