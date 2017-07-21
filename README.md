@@ -1,4 +1,4 @@
-# Letter Recognition
+# Airfoil Regression
 
 [<img alt="FOURMOND Jérôme" src="https://avatars2.githubusercontent.com/u/15089371" width="100">](https://github.com/jfourmond) |
 ------------------------|
